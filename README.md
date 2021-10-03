@@ -12,7 +12,6 @@ Helps in getting events from several instagram accounts. Events or competition s
     The input for this program is an .xlsx file containing instagram usernames. <br>
     The input file in this repository is <code>informasilomba.xlsx</code> and contains 8 instagram accounts. The first cell must be       the string "username". <br>
   <h3>Number of Posts</h3>
-    
     Determine the number of posts to take from each instagram user account. 
   <h3>Timing Coefficient</h3>
     Input type: <code>int</code><br>
