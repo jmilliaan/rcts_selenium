@@ -11,6 +11,7 @@ The input for this program is an .xlsx file containing instagram usernames.
 
 <h2>Run Program</h2>
 Type in command prompt/terminal:<br>
+
 ```
 python main.py 
 ```
