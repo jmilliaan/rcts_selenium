@@ -40,8 +40,8 @@ class URLList(UsernameFile):
         self.ig_url = "https://www.instagram.com/"
 
         # im not putting my instagram credentials in github
-        self.ig_username = "test_jm_rcts"
-        self.ig_password = "testingeksternal"
+        self.ig_username = ""
+        self.ig_password = ""
 
         self.number_of_posts = number_of_posts
         self.do_filter_keywords = do_filter_keywords
