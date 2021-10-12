@@ -14,8 +14,8 @@ from selenium.webdriver.chrome.options import Options
 account_filename = "informasilomba.xlsx"
 log_filename = "newlog.xlsx"
 ig_url = "https://www.instagram.com"
-rcts_username = "test_jm_rcts"
-rcts_password = "testingeksternal"
+rcts_username = ""
+rcts_password = ""
 number_of_posts = 3
 t_coef = 1.2
 
@@ -62,6 +62,24 @@ def get_duplicates(seq):
             if len(locs) > 1)
 
 
+def university_competition_filter(listoftext):
+    keywords = ["mahasiswa",
+                "universitas",
+                "university",
+                "undergraduate",
+                "sarjana",
+                "college",
+                "bem",
+                "ormawa",
+                "hima",
+                "s1"]
+    for keyword in keywords:
+        if keyword in listoftext:
+            return True
+    else:
+        return False
+
+
 def competition_filter(input_dict):
     keywords = ["lomba",
                 "competition",
@@ -75,12 +93,14 @@ def competition_filter(input_dict):
     comp_filter_dict = {"url": [],
                         "username": [],
                         "post_date": [],
-                        "caption": []}
+                        "caption": [],
+                        "image_url": []}
 
     similar_filter_dict = {"url": [],
                            "username": [],
                            "post_date": [],
-                           "caption": []}
+                           "caption": [],
+                           "image_url": []}
     bigmat = []
     insignificant_index = []
     for caption_index in range(len(input_dict["caption"])):
@@ -88,11 +108,12 @@ def competition_filter(input_dict):
         char_only = re.findall(r"[\w']+|[.,!?;]", lower_caption)
         for keyword in keywords:
 
-            if keyword in char_only:
-                comp_filter_dict["url"].append(input_dict["url"][caption_index][:-6])
+            if (keyword in char_only) and (university_competition_filter(char_only)):
+                comp_filter_dict["url"].append(input_dict["url"][caption_index])
                 comp_filter_dict["username"].append(input_dict["username"][caption_index])
                 comp_filter_dict["post_date"].append(input_dict["post_date"][caption_index])
                 comp_filter_dict["caption"].append(input_dict["caption"][caption_index])
+                comp_filter_dict["image_url"].append(input_dict["image_url"][caption_index])
                 break
 
     for similar_index in range(len(comp_filter_dict["caption"])):
@@ -113,8 +134,7 @@ def competition_filter(input_dict):
             similar_filter_dict["username"].append(comp_filter_dict["username"][final_filter])
             similar_filter_dict["post_date"].append(comp_filter_dict["post_date"][final_filter])
             similar_filter_dict["caption"].append(comp_filter_dict["caption"][final_filter])
-
-    print(similar_filter_dict)
+            similar_filter_dict["image_url"].append(comp_filter_dict["image_url"][final_filter])
     return similar_filter_dict
 
 
@@ -129,7 +149,7 @@ if __name__ == '__main__':
     df = pd.read_excel(log_filename,
                        sheet_name="Sheet1",
                        engine="openpyxl")
-
+    df_data = df.iloc[:, 3:7]
     chrome_options = Options()
     chrome_options.add_argument("--window-size=800,900")
     driver = webdriver.Chrome(chrome_options=chrome_options)
@@ -161,7 +181,8 @@ if __name__ == '__main__':
     new_dataset = {"url": [],
                    "username": [],
                    "post_date": [],
-                   "caption": []}
+                   "caption": [],
+                   "image_url": []}
 
     for usr in rcts_accounts:
         print(c, usr)
@@ -186,47 +207,59 @@ if __name__ == '__main__':
                               "return lenOfPage;")
 
         links = driver.find_elements_by_tag_name('a')
+        imglist = driver.find_elements_by_class_name("KL4Bh")
         main_posts = []
         post_count = 0
+
+        count = 0
         for link in links:
             try:
                 raw_url = link.get_attribute("href")
+                # for im in img:
+                #     print(im.get_attribute("src")[:-2])
+
+
             except selenium.common.exceptions.StaleElementReferenceException:
+                print("> stale element reference exception")
                 continue
 
             if "/p/" in raw_url:
-
                 json_url = raw_url + "?__a=1"
-
                 jsontext = requests.get(json_url, headers=header)
                 htmltext = html.unescape(jsontext.text)
 
                 head = htmltext[:9]
 
                 if head == '{"graphql':
+                    print(" ", post_count, raw_url)
                     post_count += 1
-                    print(post_count, raw_url)
                     json_data = json.loads(htmltext)
 
                     try:
                         body = json_data["graphql"]["shortcode_media"]
+
                         username = body["owner"]["username"]
                         post_date = detect_date(str(json_data))
-                        caption = body["edge_media_to_caption"]["edges"][0]["node"]["text"].strip()
+
+                        edges = body["edge_media_to_caption"]["edges"]
+                        caption = edges[0]["node"]["text"].strip()
+
+                        image_url = body["display_url"]
 
                     except IndexError:
                         post_date = ""
                         caption = ""
+                        image_url = ""
                         pass
 
                     new_dataset["url"].append(raw_url)
                     new_dataset["username"].append(usr)
                     new_dataset["post_date"].append(post_date)
                     new_dataset["caption"].append(caption)
-
+                    new_dataset["image_url"].append(image_url)
                 if post_count == number_of_posts:
                     break
-
+    print(new_dataset["url"], new_dataset["image_url"])
     driver.close()
 
     new_dataset = competition_filter(new_dataset)
