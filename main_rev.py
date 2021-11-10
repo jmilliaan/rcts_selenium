@@ -9,15 +9,18 @@ import selenium.common.exceptions
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # important constants
 account_filename = "informasilomba.xlsx"
 log_filename = "newlog.xlsx"
 ig_url = "https://www.instagram.com"
-rcts_username = ""
-rcts_password = ""
-number_of_posts = 3
-t_coef = 1.2
+rcts_username = "test_jm_rcts"
+rcts_password = "testingeksternal"
+number_of_posts = 5
+t_coef = 1
 
 months = ["January", "February", "March",
           "April", "May", "June",
@@ -74,7 +77,7 @@ def university_competition_filter(listoftext):
                 "hima",
                 "s1"]
     for keyword in keywords:
-        if keyword in listoftext:
+        if (keyword in listoftext) and ("islam" not in listoftext):
             return True
     else:
         return False
@@ -145,18 +148,17 @@ if __name__ == '__main__':
     rcts_accounts = []
     for account_username in accounts["username"]:
         rcts_accounts.append(str(account_username))
-
     df = pd.read_excel(log_filename,
                        sheet_name="Sheet1",
                        engine="openpyxl")
     df_data = df.iloc[:, 3:7]
+
     chrome_options = Options()
     chrome_options.add_argument("--window-size=800,900")
-    driver = webdriver.Chrome(chrome_options=chrome_options)
 
+    driver = webdriver.Chrome(chrome_options=chrome_options)
     driver.get(ig_url)
     time.sleep(t_coef * 2.5)
-
     username = driver.find_element_by_css_selector("input[name='username']")
     password = driver.find_element_by_css_selector("input[name='password']")
 
@@ -215,8 +217,6 @@ if __name__ == '__main__':
         for link in links:
             try:
                 raw_url = link.get_attribute("href")
-                # for im in img:
-                #     print(im.get_attribute("src")[:-2])
 
 
             except selenium.common.exceptions.StaleElementReferenceException:
