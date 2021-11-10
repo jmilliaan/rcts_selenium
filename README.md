@@ -1,5 +1,5 @@
 <h1>Real-Time Competition Tracking System</h1>
-Working program for Divisi Eksternal BEM CIT 2021/2022 <br>
+Program Kerja Divisi Eksternal BEM CIT 2021/2022 <br>
 Helps in getting events from several instagram accounts. Events or competition scraped from these accounts will help university students find competitions to join. <br>
 <h2>Install</h2>
 1. Chrome browser must be installed <br>
